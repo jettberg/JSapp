@@ -1,27 +1,35 @@
 let Charmander = {
-weight: "8.5 kg",
-height: "0.6 m",
-types: ["fire"],
-abilities: ["Blaze", "Solar-power"]
+    name: "Charmander",
+    weight: 8.5,
+    height: 0.6,
+    types: ["fire"],
+    abilities: ["Blaze", "Solar-power"]
 };
 
 let Bulbasaur = {
-    weight: "6.9 kg",
-    height: "0.7 m",
+    name: "Bulbasaur",
+    weight: 6.9,
+    height: 0.7,
     types: ["grass", "poison"],
     abilities: ["Chlorophyll", "Overgrow"]
 };
 
 let Squirtle = {
-    weight: "9 kg",
-    height: "0.5 m",
+    name: "Squirtle",
+    weight: 9,
+    height: 0.5,
     types: ["water"],
     abilities: ["Rain-dash", "Torrent"]
 };
 
-
-
-
-
 let pokemonList = [Charmander, Bulbasaur, Squirtle];
-alert(pokemonList);
+
+
+
+
+for (let i = 0; i < pokemonList.length; i++) {
+    document.write(pokemonList[i].name + ", Height: ", pokemonList[i].height + ", <br><br>");
+    if (pokemonList[i].height > 0.6) {
+        document.write("Wow " + pokemonList[i].name + " is tall!<br><br>");
+    };
+};
