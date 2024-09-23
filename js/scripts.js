@@ -40,12 +40,6 @@ let pokemonRepository = (function () {
   }
 
 
-  function showDetails(pokemon) {
-    console.log(pokemon);
-  }
-
-
-
   function loadList() {
     return fetch(apiUrl).then(function (response) {
       return response.json();
