@@ -25,9 +25,21 @@ let pokemonRepository = (function () {
   function addListItem(pokemon) {
     let pokemonli = document.querySelector(".pokemon-list");
     let liItem = document.createElement("li");
+    liItem.classList.add("list-group-item");
+
     let button = document.createElement("button");
-    button.innerText = pokemon.name;
     button.classList.add("btn", "btn-primary", "pokemon-button");
+
+    let pokemonName = document.createElement("span");
+    pokemonName.innerText = pokemon.name;
+    button.appendChild(pokemonName);
+
+    let pokemonImage = document.createElement("img");
+    pokemonImage.setAttribute("src", pokemon.imageUrl);
+    pokemonImage.setAttribute("alt", pokemon.name + " image");
+    pokemonImage.setAttribute("class", "pokemon-image");
+    button.appendChild(pokemonImage);
+
     button.addEventListener('click', () => showDetails(pokemon));
 
     liItem.appendChild(button);
@@ -44,7 +56,10 @@ let pokemonRepository = (function () {
           name: item.name,
           detailsUrl: item.url
         };
-        add(pokemon);
+        loadDetails(pokemon).then(function () {
+          addListItem(pokemon);
+        });
+        // add(pokemon);
       });
     }).catch(function (e) {
       console.error(e);
@@ -58,13 +73,15 @@ let pokemonRepository = (function () {
     return fetch(url).then(function (response) {
       return response.json();
     }).then(function (details) {
+      console.log(details.sprites.front_default);  // adding this to verify it
+
       item.imageUrl = details.sprites.front_default;
       item.height = details.height;
       item.types = details.types;
       item.weight = details.weight;
       item.abilities = details.abilities;
     }).catch(function (e) {
-      console.error(e);
+      console.error("Error fetching details", e);
     });
   }
 
@@ -142,6 +159,7 @@ let pokemonRepository = (function () {
 
     modalTitle.innerText = title;
     pokemonHeight.innerText = text;
+    
     pokemonImage.setAttribute('src', img);
 
     $('#pokemonModal').modal('show');
@@ -154,6 +172,7 @@ let pokemonRepository = (function () {
   function showDetails(pokemon) {
 
     console.log('Showing details for:', pokemon.name); // Using this to make sure that they are being called correctly
+    console.log('Image URL:', pokemon.imageUrl); // same thing
 
     pokemonRepository.loadDetails(pokemon).then(function () {
       showModal(
@@ -164,6 +183,8 @@ let pokemonRepository = (function () {
         '/nWeight: ' + pokemon.weight,
         pokemon.imageUrl
       );
+    }).catch(function (error) {
+      console.error("error loading details", error)
     });
   }
 
