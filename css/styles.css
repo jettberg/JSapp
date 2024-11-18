@@ -50,7 +50,10 @@
   margin-right: auto;
 }
 
-
+.modal-body img {
+  max-width: 100%;
+  height: auto;
+}
 
 /* #modal-container {
   display: none;
