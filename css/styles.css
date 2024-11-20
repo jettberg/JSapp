@@ -140,3 +140,9 @@ body {
   z-index: 10; /* Higher than 0 to make sure it's above the background */
   background-color: rgba(0, 0, 0, 0.7); /* Optional: Semi-transparent background */
 }
+
+
+.navbar-nav #searchInput {
+  margin-right: 10px; /* Optional: Adds some space to the right of the search bar */
+  width: 200px; /* Control the width of the search bar */
+}

@@ -215,6 +215,33 @@ let pokemonRepository = (function () {
 
 
 
+// Function to filter Pokémon by name and display matching Pokémon in the list
+function searchPokemon(query) {
+  const pokemonList = pokemonRepository.getAll(); // Get all Pokémon
+  const filteredPokemons = pokemonList.filter(pokemon => pokemon.name.toLowerCase().includes(query.toLowerCase()));
+
+  displayPokemon(filteredPokemons); // Update the displayed list with the filtered Pokémon
+}
+
+// Listen for input in the search bar
+document.querySelector('#searchInput').addEventListener('input', function(event) {
+  const query = event.target.value; // Get the current value of the search input
+  if (query) {
+    searchPokemon(query); // Call the search function
+  } else {
+    // If the search bar is empty, show all Pokémon again
+    showAllPokemon();
+  }
+});
+
+document.querySelector('#searchInput').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') { // Check if the Enter key was pressed
+    const navbarCollapse = document.querySelector('.navbar-collapse'); // Get the navbar collapse element
+    navbarCollapse.classList.add('collapse'); // Collapse the navbar
+  }
+});
+
+
 
 
 // Display Pokémon in evolutionary groups
