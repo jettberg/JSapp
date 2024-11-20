@@ -36,26 +36,42 @@
 
 
 
-.pokemon-button {
+.pokemon-button  {
   display: block;
   text-align: center;
+  font-size: 40px;
   padding: 10px;
   margin-bottom: 10px;
+  border: none;
+
+  font-family: 'Honk';
+
 }
 
 .pokemon-image {
-  width: 100px; 
+  width: 280px; 
   display: block;
   margin-left: auto;
   margin-right: auto;
 }
 
-.modal-body img {
-  max-width: 100%;
+
+
+.modal-body #pokemonBackImage {
+  width: 80%;
   height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-
+.modal-body #pokemonImage {
+  width: 80%;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 
 
@@ -63,4 +79,47 @@
 .nav-link.active {
   font-weight: bold;
   color: purple !important;
+}
+
+
+
+
+#pokemonDescriptionContainer {
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+#pokemonDescription {
+  font-size: 30px;
+  color: #050505;
+  line-height: 1.5;
+}
+
+
+
+
+.modal-dialog {
+  width: 80%;               /* Set the width of the modal (80% of screen width) */
+  max-width: 1500px;        /* Set the maximum width */
+  min-width: 200px;         /* Set a minimum width to avoid too small modals */
+  max-height: 90vh;         /* Limit the height to 90% of the viewport height */
+  overflow-y: auto;         /* Enable vertical scrolling if content exceeds max height */
+  position: fixed;          /* Fixed position for the modal on the screen */
+  top: 30px;                /* Add some top margin */
+  right: 0;                 /* Align the modal to the right side of the screen */
+  margin: 0;                /* Remove any default margin to keep it tight against the edge */
+  display: flex;            /* Flexbox for vertical and horizontal centering */
+  justify-content: flex-end;/* Align the content of the modal to the right */
+  align-items: center;      /* Vertically center the modal */
+  border-radius: 10px;      /* Rounded corners for the modal */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add a shadow around the modal */
+}
+
+
+
+#allPokemonLink {
+  color: red;
 }

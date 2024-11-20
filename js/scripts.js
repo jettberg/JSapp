@@ -1,10 +1,10 @@
-
-
 let pokemonRepository = (function () {
   let pokemonList = [];
   let apiUrl = 'https://pokeapi.co/api/v2/pokemon/?limit=151';
 
-
+  function setList(pokemons) {
+    pokemonList = pokemons;
+  }
 
   function add(pokemon) {
     if (
@@ -15,102 +15,58 @@ let pokemonRepository = (function () {
     } else {
       console.log("pokemon is not correct");
     }
-
   }
+
+
+
+
   function getAll() {
     return pokemonList;
   }
 
 
-  function addListItem(pokemon) {
-    let pokemonli = document.querySelector(".pokemon-list");
-    let liItem = document.createElement("li");
-    liItem.classList.add("list-group-item");
-
-    let button = document.createElement("button");
-    button.classList.add("btn", "btn-primary", "pokemon-button");
-
-    let pokemonName = document.createElement("span");
-    pokemonName.innerText = pokemon.name;
-    button.appendChild(pokemonName);
-
-    let pokemonImage = document.createElement("img");
-    pokemonImage.setAttribute("src", pokemon.imageUrl);
-    pokemonImage.setAttribute("alt", pokemon.name + " image");
-    pokemonImage.setAttribute("class", "pokemon-image");
-    button.appendChild(pokemonImage);
-
-    button.addEventListener('click', () => showDetails(pokemon));
-
-    liItem.appendChild(button);
-    pokemonli.appendChild(liItem);
-  }
 
 
-  async function loadList() {
-    try {
-      const response = await fetch(apiUrl);
-      const json = await response.json();
-      // Create an array of promises to load details for each Pokémon
-      const loadDetailsPromises = json.results.map(async (item) => {
-        let pokemon = {
-          name: item.name,
-          detailsUrl: item.url,
-        };
-        await loadDetails(pokemon); // Wait for the details to be fetched for each Pokémon
-        return pokemon;
-      });
-      // Wait for all Pokémon details to be loaded in parallel
-      const pokemons = await Promise.all(loadDetailsPromises);
-      // After all details are loaded, add them to the list
-      pokemons.forEach(pokemon => {
-        addListItem(pokemon);
-      });
-    } catch (e) {
-      console.error("Error loading Pokémon list", e);
-    }
-  }
-
-
-
-  async function loadDetails(item) {
-    try {
-      const response = await fetch(item.detailsUrl);  // Wait for the details of each Pokémon
-      const details = await response.json();
+  function showDetails(pokemon) {
+    console.log('Showing details for:', pokemon.name);
+    console.log('Image URL:', pokemon.imageUrl);
+    console.log('Back Image URL:', pokemon.backImageUrl);
   
-      // Add the details to the item object
-      item.imageUrl = details.sprites.front_default;
-      item.height = details.height;
-      item.types = details.types;
-      item.weight = details.weight;
-      item.abilities = details.abilities;
-
-      // console.log('Loaded details for:', item.name);
-      // console.log('Types:', item.types) 
-
-    } catch (e) {
-      console.error("Error fetching details", e);
-    }
+    pokemonRepository.loadDetails(pokemon).then(function () {
+      // Pass the description when showing the modal
+      showModal(
+        pokemon.name,
+        'Type: ' + pokemon.types.map(type => type.type.name).join(', ') +
+        '<br>Height: ' + pokemon.height +
+        '<br>Weight: ' + pokemon.weight,
+        pokemon.imageUrl,
+        pokemon.description,
+        pokemon.backImageUrl
+      );
+    }).catch(function (error) {
+      console.error("Error loading details", error);
+    });
   }
 
 
 
 
-   
 
-
-
-  function showModal(title, text, img) {
+  function showModal(title, text, img, description, backImg) {
     let modalTitle = document.querySelector("#pokemonModalLabel");
     let modalBody = document.querySelector(".modal-body");
     let pokemonHeight = document.querySelector("#pokemonHeight");
     let pokemonImage = document.querySelector("#pokemonImage");
-
+    let pokemonBackImage = document.querySelector("#pokemonBackImage");
+    let pokemonDescription = document.querySelector("#pokemonDescription");
+  
     modalTitle.innerText = title;
     pokemonHeight.innerHTML = text;
-
     pokemonImage.setAttribute('src', img);
-
+    pokemonBackImage.setAttribute('src', backImg); // Use backImg here
+  
+    pokemonDescription.innerHTML = description || "No description available."; // Show description if available
+  
     $('#pokemonModal').modal('show');
   }
 
@@ -118,27 +74,128 @@ let pokemonRepository = (function () {
 
 
 
-  function showDetails(pokemon) {
 
-    console.log('Showing details for:', pokemon.name); // Using this to make sure that they are being called correctly
-    console.log('Image URL:', pokemon.imageUrl); // same thing
-
-    pokemonRepository.loadDetails(pokemon).then(function () {
-      showModal(
-
-        pokemon.name,
-        'Type: ' + pokemon.types.map(type => type.type.name).join(', ') +
-        '<br>Height: ' + pokemon.height +
-        '<br>Weight: ' + pokemon.weight,
-        pokemon.imageUrl
-      );
-
-
-
-    }).catch(function (error) {
-      console.error("error loading details", error)
+  function addListItem(pokemon) {
+    let pokemonli = document.querySelector(".pokemon-list");
+    let liItem = document.createElement("li");
+    liItem.classList.add("list-group-item");
+  
+    let button = document.createElement("button");
+    button.classList.add("btn", "btn-primary", "pokemon-button");
+  
+    let pokemonName = document.createElement("span");
+    pokemonName.classList.add("pokemon-name");
+    pokemonName.innerText = pokemon.name;
+    button.appendChild(pokemonName);
+  
+    let pokemonImage = document.createElement("img");
+    pokemonImage.setAttribute("src", pokemon.imageUrl);
+    pokemonImage.setAttribute("alt", pokemon.name + " image");
+    pokemonImage.setAttribute("class", "pokemon-image");
+    button.appendChild(pokemonImage);
+  
+    button.addEventListener('click', function () {
+      showDetails(pokemon);
     });
+  
+    liItem.appendChild(button);
+    pokemonli.appendChild(liItem);
   }
+
+
+
+
+  async function loadList() {
+    try {
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      const pokemonPromises = data.results.map(async (pokemon) => {
+        let pokemonObject = {
+          name: pokemon.name,
+          detailsUrl: pokemon.url,
+          evolutionChain: null, // Evolution chain will be populated later
+        };
+        await loadDetails(pokemonObject); // Load details including evolution
+        return pokemonObject;
+      });
+
+      const pokemonList = await Promise.all(pokemonPromises);
+      pokemonRepository.setList(pokemonList);
+
+      // After loading all Pokémon, display them grouped by evolution
+      displayPokemon(pokemonList);
+    } catch (error) {
+      console.error("Error loading the Pokémon list", error);
+    }
+  }
+
+
+
+
+  async function loadDetails(item) {
+    try {
+      let url = item.detailsUrl;
+      const response = await fetch(url);
+      const details = await response.json();
+  
+      item.imageUrl = details.sprites.front_default;
+      item.backImageUrl = details.sprites.back_default;
+      item.height = details.height;
+      item.types = details.types;
+      item.weight = details.weight;
+      item.abilities = details.abilities;
+  
+      // Fetch the species data to get the description
+      const speciesResponse = await fetch(details.species.url);
+      const speciesData = await speciesResponse.json();
+  
+      // Pokémon description (may differ by language)
+      let description = speciesData.flavor_text_entries.find(entry => entry.language.name === 'en');
+      item.description = description ? description.flavor_text : "No description available."; // Store description
+  
+      // Fetch the evolution chain data using the species URL
+      let evolutionUrl = speciesData.evolution_chain.url;
+      const evolutionResponse = await fetch(evolutionUrl);
+      const evolutionData = await evolutionResponse.json();
+  
+      // Store evolution chain data
+      item.evolutionChain = evolutionData.chain;
+    } catch (error) {
+      console.error("Error fetching details", error);
+    }
+  }
+
+
+
+
+  // Group Pokémon by their evolutionary line
+  function groupByEvolution(pokemonList) {
+    let evolutionGroups = [];
+    // Iterate over all Pokémon and group them by evolution chain
+    pokemonList.forEach(pokemon => {
+      let evolutionGroup = findOrCreateGroup(evolutionGroups, pokemon.evolutionChain);
+      evolutionGroup.push(pokemon);
+    });
+    return evolutionGroups;
+  }
+
+
+
+
+  // Helper function to find an existing group by its evolution chain or create a new one
+  function findOrCreateGroup(groups, evolutionChain) {
+    // Using the first Pokémon in the chain as a unique identifier
+    for (let group of groups) {
+      if (group[0].evolutionChain.species.name === evolutionChain.species.name) {
+        return group;
+      }
+    }
+    // If no group was found, create a new one
+    let newGroup = [];
+    groups.push(newGroup);
+    return newGroup;
+  }
+
 
 
 
@@ -148,6 +205,9 @@ let pokemonRepository = (function () {
     addListItem: addListItem,
     loadList: loadList,
     loadDetails: loadDetails,
+    setList: setList,
+    groupByEvolution: groupByEvolution,
+    showDetails: showDetails
   };
 })();
 
@@ -157,91 +217,64 @@ let pokemonRepository = (function () {
 
 
 
+// Display Pokémon in evolutionary groups
+async function displayPokemon(pokemons) {
+  const pokemonList = document.querySelector(".pokemon-list");
+  pokemonList.innerHTML = '';
+  // Group the Pokémon by evolution line
+  const groupedPokemons = pokemonRepository.groupByEvolution(pokemons);
+  // Render each group of Pokémon in a row
+  groupedPokemons.forEach(group => {
+    let row = document.createElement("div");
+    row.classList.add("row");
 
+    group.forEach(pokemon => {
+      let liItem = document.createElement("li");
+      liItem.classList.add("list-group-item");
+
+      let button = document.createElement("button");
+      button.classList.add("btn", "btn-primary", "pokemon-button");
+
+      let pokemonName = document.createElement("span");
+      pokemonName.innerText = pokemon.name;
+      button.appendChild(pokemonName);
+
+      let pokemonImage = document.createElement("img");
+      pokemonImage.setAttribute("src", pokemon.imageUrl);
+      pokemonImage.setAttribute("alt", pokemon.name + " image");
+      pokemonImage.setAttribute("class", "pokemon-image");
+      button.appendChild(pokemonImage);
+
+      button.addEventListener('click', () => pokemonRepository.showDetails(pokemon));      liItem.appendChild(button);
+      row.appendChild(liItem);
+    });
+
+    pokemonList.appendChild(row);
+  });
+}
 
 
 
 
 
 function filterByType(type) {
-  console.log('Filtering by type:', type);  // This'll log the selected type
+  console.log('Filtering by type:', type);
 
-  // Filter the actual Pokémon data (from the API) by the selected type:
+  // Filter the actual Pokémon data (from the repository) by the selected type:
   let filteredPokemons = pokemonRepository.getAll().filter(pokemon => {
-    // Log each Pokémon's types to see if the comparison works
-    console.log('Checking Pokémon:', pokemon.name, 'Types:', pokemon.types);
-
-    // Check if any of the types match the selected type
-    let matchFound = pokemon.types.some(t => {
-      console.log('Comparing Pokémon Type:', t.type.name, 'with selected Type:', type); // Log each type comparison
-      return t.type.name.toLowerCase().trim() === type.toLowerCase().trim(); // Case-insensitive comparison
-    });
-
-    // Log the result of the comparison
-    console.log('Match found for', pokemon.name, ':', matchFound);
-
+    // Check if the Pokémon has the selected type
+    let matchFound = pokemon.types.some(t => t.type.name.toLowerCase() === type.toLowerCase());
     return matchFound; // Return whether there was a match
   });
 
-  console.log('Filtered Pokémon:', filteredPokemons);  // Log filtered Pokémon result
-
-  // Display the filtered Pokémon list, including their image URLs
   displayPokemon(filteredPokemons);
-
-  // Highlight the active type in the navbar
   highlightActiveType(type);
 }
 
 
 
 
-//this is just to test to see if the filtering works for a given list of pokemon to see if the filtering works 
-
-// function filterByType(type) {
-//   console.log('Filtering by type:', type);  // Log the selected type
-
-//   // Hardcoded list of Pokémon for testing:
-//   let testPokemons = [
-//     { 
-//       name: 'Bulbasaur', 
-//       types: [{ type: { name: 'grass' } }, { type: { name: 'poison' } }],
-//       imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'  // Image URL for Bulbasaur
-//     },
-//     { 
-//       name: 'Charmander', 
-//       types: [{ type: { name: 'fire' } }],
-//       imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png'  // Image URL for Charmander
-//     },
-//     { 
-//       name: 'Squirtle', 
-//       types: [{ type: { name: 'water' } }],
-//       imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png'  // Image URL for Squirtle
-//     }
-//   ];
-//   // Filter the testPokemons list by the selected type:
-//   let filteredPokemons = testPokemons.filter(pokemon => {
-//     return pokemon.types.some(t => t.type.name.toLowerCase().trim() === type.toLowerCase().trim());
-//   });
-//   console.log('Filtered Pokémon:', filteredPokemons);  // Log filtered Pokémon result
-//   displayPokemon(filteredPokemons);  // Display the filtered Pokémon list
-//   highlightActiveType(type);  // Highlight the active type in the navbar
-// }
-
-
-
-
-
-
-
-function displayPokemon(pokemons) {
-  let pokemonList = document.querySelector(".pokemon-list");
-  pokemonList.innerHTML = '';
-
-  pokemons.forEach(pokemon => {
-    pokemonRepository.addListItem(pokemon);
-  });
-}
-
+// Highlight the active type in the navbar
 function highlightActiveType(type) {
   let links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
@@ -253,58 +286,30 @@ function highlightActiveType(type) {
   });
 }
 
+
+
+
+// Reset button handler
 function showAllPokemon() {
   highlightActiveType('');
-  console.log('Showing all Pokémon');
-  displayPokemon(pokemonRepository.getAll());
+  let pokemonList = document.querySelector(".pokemon-list");
+  pokemonList.innerHTML = '';
+  // Load the full list of Pokémon again (re-fetching and re-rendering all of them)
+  pokemonRepository.loadList().then(function () {
+    // After reloading the list, display all Pokémon
+    pokemonRepository.getAll().forEach(function (pokemon) {
+      pokemonRepository.addListItem(pokemon);
+    });
+  });
 }
 
 
 
 
-
-document.addEventListener('DOMContentLoaded', function () {
-
-
-  document.querySelector('#grassTypeLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    filterByType('grass');
-    highlightActiveType('grass');
-  });
-  document.querySelector('#fireTypeLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    filterByType('fire');
-    highlightActiveType('fire');
-  });
-  document.querySelector('#waterTypeLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    filterByType('water');
-    highlightActiveType('water');
-  });
-  document.querySelector('#flyingTypeLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    filterByType('flying');
-    highlightActiveType('flying');
-  });
-  document.querySelector('#rockTypeLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    filterByType('rock');
-    highlightActiveType('rock');
-  });
-  document.querySelector('#fightingTypeLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    filterByType('fighting');
-    highlightActiveType('fighting');
-  });
-  document.querySelector('#ghostTypeLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    filterByType('ghost');
-    highlightActiveType('ghost');
-  });
-  document.querySelector('#allPokemonLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    showAllPokemon();
-    highlightActiveType('');
+// Initialize the app
+pokemonRepository.loadList().then(function () {
+  pokemonRepository.getAll().forEach(function (pokemon) {
+    pokemonRepository.addListItem(pokemon);
   });
 });
 
@@ -312,8 +317,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-pokemonRepository.loadList().then(function () {
-  pokemonRepository.getAll().forEach(function (pokemon) {
-    pokemonRepository.addListItem(pokemon);
+
+
+
+
+
+
+
+
+// Event listeners for the filter types
+document.addEventListener('DOMContentLoaded', function () {
+  pokemonRepository.loadList().then(function () {
+    const allPokemons = pokemonRepository.getAll();
+    displayPokemon(allPokemons);
   });
+});
+
+document.querySelector('#grassTypeLink').addEventListener('click', function (event) {
+  event.preventDefault();
+  filterByType('grass');
+  highlightActiveType('grass');
+});
+document.querySelector('#fireTypeLink').addEventListener('click', function (event) {
+  event.preventDefault();
+  filterByType('fire');
+  highlightActiveType('fire');
+});
+document.querySelector('#waterTypeLink').addEventListener('click', function (event) {
+  event.preventDefault();
+  filterByType('water');
+  highlightActiveType('water');
+});
+document.querySelector('#allPokemonLink').addEventListener('click', function (event) {
+  event.preventDefault();
+  highlightActiveType('');
+  showAllPokemon();
 });
