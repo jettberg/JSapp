@@ -123,3 +123,20 @@
 #allPokemonLink {
   color: red;
 }
+
+
+
+
+body {
+  background-image: url('/images/pokeBackground.jpg'); /* Link to the PNG file */
+  background-repeat: no-repeat; /* Prevent the image from repeating */
+  background-size: cover; /* Scale the image to cover the entire screen */
+  background-position: center; /* Center the background image */
+  background-attachment: fixed; /* Fix the background to the viewport */
+}
+
+.navbar {
+  position: relative;  /* Ensure the navbar has positioning */
+  z-index: 10; /* Higher than 0 to make sure it's above the background */
+  background-color: rgba(0, 0, 0, 0.7); /* Optional: Semi-transparent background */
+}

@@ -353,3 +353,33 @@ document.querySelector('#allPokemonLink').addEventListener('click', function (ev
   highlightActiveType('');
   showAllPokemon();
 });
+
+
+
+
+
+
+const navbar = document.querySelector('.navbar');
+const navbarToggler = document.querySelector('.navbar-toggler');
+const navbarCollapse = document.querySelector('.navbar-collapse');
+
+// Toggle the navbar when clicking the toggler button
+navbarToggler.addEventListener('click', function (event) {
+  event.stopPropagation(); // Prevent the click event from bubbling up
+  navbarCollapse.classList.toggle('collapse'); // Toggle the navbar collapse
+});
+
+// When clicking anywhere outside the navbar, close the navbar
+document.addEventListener('click', function (event) {
+  if (!navbar.contains(event.target)) {
+    // Close the navbar by collapsing it
+    if (!navbarCollapse.classList.contains('collapse')) {
+      navbarCollapse.classList.add('collapse');
+    }
+  }
+});
+
+// Prevent the navbar collapse toggle from closing if clicking inside the navbar
+navbar.addEventListener('click', function (event) {
+  event.stopPropagation(); // Prevent the click inside the navbar from closing it
+});
