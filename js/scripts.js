@@ -31,7 +31,7 @@ let pokemonRepository = (function () {
     console.log('Showing details for:', pokemon.name);
     console.log('Image URL:', pokemon.imageUrl);
     console.log('Back Image URL:', pokemon.backImageUrl);
-  
+
     pokemonRepository.loadDetails(pokemon).then(function () {
       // Pass the description when showing the modal
       showModal(
@@ -59,14 +59,14 @@ let pokemonRepository = (function () {
     let pokemonImage = document.querySelector("#pokemonImage");
     let pokemonBackImage = document.querySelector("#pokemonBackImage");
     let pokemonDescription = document.querySelector("#pokemonDescription");
-  
+
     modalTitle.innerText = title;
     pokemonHeight.innerHTML = text;
     pokemonImage.setAttribute('src', img);
     pokemonBackImage.setAttribute('src', backImg); // Use backImg here
-  
+
     pokemonDescription.innerHTML = description || "No description available."; // Show description if available
-  
+
     $('#pokemonModal').modal('show');
   }
 
@@ -79,25 +79,25 @@ let pokemonRepository = (function () {
     let pokemonli = document.querySelector(".pokemon-list");
     let liItem = document.createElement("li");
     liItem.classList.add("list-group-item");
-  
+
     let button = document.createElement("button");
     button.classList.add("btn", "btn-primary", "pokemon-button");
-  
+
     let pokemonName = document.createElement("span");
     pokemonName.classList.add("pokemon-name");
     pokemonName.innerText = pokemon.name;
     button.appendChild(pokemonName);
-  
+
     let pokemonImage = document.createElement("img");
     pokemonImage.setAttribute("src", pokemon.imageUrl);
     pokemonImage.setAttribute("alt", pokemon.name + " image");
     pokemonImage.setAttribute("class", "pokemon-image");
     button.appendChild(pokemonImage);
-  
+
     button.addEventListener('click', function () {
       showDetails(pokemon);
     });
-  
+
     liItem.appendChild(button);
     pokemonli.appendChild(liItem);
   }
@@ -137,27 +137,27 @@ let pokemonRepository = (function () {
       let url = item.detailsUrl;
       const response = await fetch(url);
       const details = await response.json();
-  
+
       item.imageUrl = details.sprites.front_default;
       item.backImageUrl = details.sprites.back_default;
       item.height = details.height;
       item.types = details.types;
       item.weight = details.weight;
       item.abilities = details.abilities;
-  
+
       // Fetch the species data to get the description
       const speciesResponse = await fetch(details.species.url);
       const speciesData = await speciesResponse.json();
-  
+
       // Pokémon description (may differ by language)
       let description = speciesData.flavor_text_entries.find(entry => entry.language.name === 'en');
       item.description = description ? description.flavor_text : "No description available."; // Store description
-  
+
       // Fetch the evolution chain data using the species URL
       let evolutionUrl = speciesData.evolution_chain.url;
       const evolutionResponse = await fetch(evolutionUrl);
       const evolutionData = await evolutionResponse.json();
-  
+
       // Store evolution chain data
       item.evolutionChain = evolutionData.chain;
     } catch (error) {
@@ -215,29 +215,25 @@ let pokemonRepository = (function () {
 
 
 
-// Function to filter Pokémon by name and display matching Pokémon in the list
+
 function searchPokemon(query) {
-  const pokemonList = pokemonRepository.getAll(); // Get all Pokémon
+  const pokemonList = pokemonRepository.getAll();
   const filteredPokemons = pokemonList.filter(pokemon => pokemon.name.toLowerCase().includes(query.toLowerCase()));
-
-  displayPokemon(filteredPokemons); // Update the displayed list with the filtered Pokémon
+  displayPokemon(filteredPokemons);
 }
-
-// Listen for input in the search bar
-document.querySelector('#searchInput').addEventListener('input', function(event) {
-  const query = event.target.value; // Get the current value of the search input
+document.querySelector('#searchInput').addEventListener('input', function (event) {
+  const query = event.target.value;
   if (query) {
-    searchPokemon(query); // Call the search function
+    searchPokemon(query);
   } else {
     // If the search bar is empty, show all Pokémon again
     showAllPokemon();
   }
 });
-
-document.querySelector('#searchInput').addEventListener('keydown', function(event) {
-  if (event.key === 'Enter') { // Check if the Enter key was pressed
-    const navbarCollapse = document.querySelector('.navbar-collapse'); // Get the navbar collapse element
-    navbarCollapse.classList.add('collapse'); // Collapse the navbar
+document.querySelector('#searchInput').addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    navbarCollapse.classList.add('collapse');
   }
 });
 
@@ -272,7 +268,7 @@ async function displayPokemon(pokemons) {
       pokemonImage.setAttribute("class", "pokemon-image");
       button.appendChild(pokemonImage);
 
-      button.addEventListener('click', () => pokemonRepository.showDetails(pokemon));      liItem.appendChild(button);
+      button.addEventListener('click', () => pokemonRepository.showDetails(pokemon)); liItem.appendChild(button);
       row.appendChild(liItem);
     });
 
