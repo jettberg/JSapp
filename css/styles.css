@@ -55,54 +55,12 @@
   height: auto;
 }
 
-/* #modal-container {
-  display: none;
-}
 
-#modal-container.is-visible {
-  position: fixed;
-  padding: 20px;
-  box-sizing: border-box;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-/* this is so it is above the other content on the page */
-  /* z-index: 999;  */
-  
-/* this is so that you can scroll if the screen doesnt display everything */
-  /* overflow: auto;  */
-  
-/* this is just centering the modal on the screen */
-  /* display: grid;
-  place-items: center;
-  text-align: center;
-}
 
-.modal {
-  margin: auto;
-  border: 8px solid var(--colorthemered);
-  display: inline-block;
-  box-sizing: border-box;
-  border-radius: 8px;
-  background: #fff;
-  padding: 15px;
-  width: 100%;
-  max-width: 700px;
-  text-align: center;
-  justify-content: center;
-}
 
-.modal-close {
-  float: right;
-  border: 0;
-  background: none;
-  color: #777;
-  text-decoration: underline;
-  cursor: pointer;
-}
 
-.modal-close:hover {
-  text-decoration: none;
-} */
+
+.nav-link.active {
+  font-weight: bold;
+  color: purple !important;
+}

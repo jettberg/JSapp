@@ -47,47 +47,56 @@ let pokemonRepository = (function () {
   }
 
 
-  function loadList() {
-    return fetch(apiUrl).then(function (response) {
-      return response.json();
-    }).then(function (json) {
-      json.results.forEach(function (item) {
+  async function loadList() {
+    try {
+      const response = await fetch(apiUrl);
+      const json = await response.json();
+      // Create an array of promises to load details for each Pokémon
+      const loadDetailsPromises = json.results.map(async (item) => {
         let pokemon = {
           name: item.name,
-          detailsUrl: item.url
+          detailsUrl: item.url,
         };
-        loadDetails(pokemon).then(function () {
-          addListItem(pokemon);
-        });
+        await loadDetails(pokemon); // Wait for the details to be fetched for each Pokémon
+        return pokemon;
       });
-    }).catch(function (e) {
-      console.error(e);
-    })
+      // Wait for all Pokémon details to be loaded in parallel
+      const pokemons = await Promise.all(loadDetailsPromises);
+      // After all details are loaded, add them to the list
+      pokemons.forEach(pokemon => {
+        addListItem(pokemon);
+      });
+    } catch (e) {
+      console.error("Error loading Pokémon list", e);
+    }
   }
 
 
 
-  function loadDetails(item) {
-    let url = item.detailsUrl;
-    return fetch(url).then(function (response) {
-      return response.json();
-    }).then(function (details) {
-      console.log(details.sprites.front_default);  // adding this to verify it
-
+  async function loadDetails(item) {
+    try {
+      const response = await fetch(item.detailsUrl);  // Wait for the details of each Pokémon
+      const details = await response.json();
+  
+      // Add the details to the item object
       item.imageUrl = details.sprites.front_default;
       item.height = details.height;
       item.types = details.types;
       item.weight = details.weight;
       item.abilities = details.abilities;
-    }).catch(function (e) {
+
+      // console.log('Loaded details for:', item.name);
+      // console.log('Types:', item.types) 
+
+    } catch (e) {
       console.error("Error fetching details", e);
-    });
+    }
   }
 
 
 
 
-
+   
 
 
 
@@ -99,7 +108,7 @@ let pokemonRepository = (function () {
 
     modalTitle.innerText = title;
     pokemonHeight.innerHTML = text;
-    
+
     pokemonImage.setAttribute('src', img);
 
     $('#pokemonModal').modal('show');
@@ -116,7 +125,7 @@ let pokemonRepository = (function () {
 
     pokemonRepository.loadDetails(pokemon).then(function () {
       showModal(
-        
+
         pokemon.name,
         'Type: ' + pokemon.types.map(type => type.type.name).join(', ') +
         '<br>Height: ' + pokemon.height +
@@ -125,7 +134,7 @@ let pokemonRepository = (function () {
       );
 
 
-      
+
     }).catch(function (error) {
       console.error("error loading details", error)
     });
@@ -141,6 +150,167 @@ let pokemonRepository = (function () {
     loadDetails: loadDetails,
   };
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+function filterByType(type) {
+  console.log('Filtering by type:', type);  // This'll log the selected type
+
+  // Filter the actual Pokémon data (from the API) by the selected type:
+  let filteredPokemons = pokemonRepository.getAll().filter(pokemon => {
+    // Log each Pokémon's types to see if the comparison works
+    console.log('Checking Pokémon:', pokemon.name, 'Types:', pokemon.types);
+
+    // Check if any of the types match the selected type
+    let matchFound = pokemon.types.some(t => {
+      console.log('Comparing Pokémon Type:', t.type.name, 'with selected Type:', type); // Log each type comparison
+      return t.type.name.toLowerCase().trim() === type.toLowerCase().trim(); // Case-insensitive comparison
+    });
+
+    // Log the result of the comparison
+    console.log('Match found for', pokemon.name, ':', matchFound);
+
+    return matchFound; // Return whether there was a match
+  });
+
+  console.log('Filtered Pokémon:', filteredPokemons);  // Log filtered Pokémon result
+
+  // Display the filtered Pokémon list, including their image URLs
+  displayPokemon(filteredPokemons);
+
+  // Highlight the active type in the navbar
+  highlightActiveType(type);
+}
+
+
+
+
+//this is just to test to see if the filtering works for a given list of pokemon to see if the filtering works 
+
+// function filterByType(type) {
+//   console.log('Filtering by type:', type);  // Log the selected type
+
+//   // Hardcoded list of Pokémon for testing:
+//   let testPokemons = [
+//     { 
+//       name: 'Bulbasaur', 
+//       types: [{ type: { name: 'grass' } }, { type: { name: 'poison' } }],
+//       imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'  // Image URL for Bulbasaur
+//     },
+//     { 
+//       name: 'Charmander', 
+//       types: [{ type: { name: 'fire' } }],
+//       imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png'  // Image URL for Charmander
+//     },
+//     { 
+//       name: 'Squirtle', 
+//       types: [{ type: { name: 'water' } }],
+//       imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png'  // Image URL for Squirtle
+//     }
+//   ];
+//   // Filter the testPokemons list by the selected type:
+//   let filteredPokemons = testPokemons.filter(pokemon => {
+//     return pokemon.types.some(t => t.type.name.toLowerCase().trim() === type.toLowerCase().trim());
+//   });
+//   console.log('Filtered Pokémon:', filteredPokemons);  // Log filtered Pokémon result
+//   displayPokemon(filteredPokemons);  // Display the filtered Pokémon list
+//   highlightActiveType(type);  // Highlight the active type in the navbar
+// }
+
+
+
+
+
+
+
+function displayPokemon(pokemons) {
+  let pokemonList = document.querySelector(".pokemon-list");
+  pokemonList.innerHTML = '';
+
+  pokemons.forEach(pokemon => {
+    pokemonRepository.addListItem(pokemon);
+  });
+}
+
+function highlightActiveType(type) {
+  let links = document.querySelectorAll('.nav-link');
+  links.forEach(link => {
+    if (link.innerText.toLowerCase() === type) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+
+function showAllPokemon() {
+  highlightActiveType('');
+  console.log('Showing all Pokémon');
+  displayPokemon(pokemonRepository.getAll());
+}
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+
+
+  document.querySelector('#grassTypeLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    filterByType('grass');
+    highlightActiveType('grass');
+  });
+  document.querySelector('#fireTypeLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    filterByType('fire');
+    highlightActiveType('fire');
+  });
+  document.querySelector('#waterTypeLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    filterByType('water');
+    highlightActiveType('water');
+  });
+  document.querySelector('#flyingTypeLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    filterByType('flying');
+    highlightActiveType('flying');
+  });
+  document.querySelector('#rockTypeLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    filterByType('rock');
+    highlightActiveType('rock');
+  });
+  document.querySelector('#fightingTypeLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    filterByType('fighting');
+    highlightActiveType('fighting');
+  });
+  document.querySelector('#ghostTypeLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    filterByType('ghost');
+    highlightActiveType('ghost');
+  });
+  document.querySelector('#allPokemonLink').addEventListener('click', function (event) {
+    event.preventDefault();
+    showAllPokemon();
+    highlightActiveType('');
+  });
+});
+
+
+
+
 
 pokemonRepository.loadList().then(function () {
   pokemonRepository.getAll().forEach(function (pokemon) {
