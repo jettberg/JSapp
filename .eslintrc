@@ -7,6 +7,9 @@
         "eslint:recommended"
     ],
     "rules": {
-       
+        "quotes": ["error", "single", { "avoidEscape": true }]
+      },
+      "globals": {
+        "$": "readonly"
+      }
     }
-}
